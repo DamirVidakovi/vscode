@@ -27,7 +27,7 @@ import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { createAndFillInActionBarActions } from 'vs/platform/actions/browser/menuEntryActionViewItem';
 import { RunOnceScheduler } from 'vs/base/common/async';
 import { Disposable, DisposableStore } from 'vs/base/common/lifecycle';
-import { LifecyclePhase, ILifecycleService } from 'vs/platform/lifecycle/common/lifecycle';
+import { LifecyclePhase, ILifecycleService } from 'vs/workbench/services/lifecycle/common/lifecycle';
 import { IWorkspaceFolderCreationData, IWorkspacesService } from 'vs/platform/workspaces/common/workspaces';
 import { IIntegrityService } from 'vs/workbench/services/integrity/common/integrity';
 import { isWindows, isMacintosh } from 'vs/base/common/platform';
@@ -261,8 +261,8 @@ export class NativeWindow extends Disposable {
 
 		// Detect minimize / maximize
 		this._register(Event.any(
-			Event.map(Event.filter(this.nativeHostService.onWindowMaximize, id => id === this.nativeHostService.windowId), () => true),
-			Event.map(Event.filter(this.nativeHostService.onWindowUnmaximize, id => id === this.nativeHostService.windowId), () => false)
+			Event.map(Event.filter(this.nativeHostService.onDidMaximizeWindow, id => id === this.nativeHostService.windowId), () => true),
+			Event.map(Event.filter(this.nativeHostService.onDidUnmaximizeWindow, id => id === this.nativeHostService.windowId), () => false)
 		)(e => this.onDidChangeMaximized(e)));
 
 		this.onDidChangeMaximized(this.environmentService.configuration.maximized ?? false);
@@ -444,7 +444,7 @@ export class NativeWindow extends Disposable {
 				if (options?.allowTunneling) {
 					const portMappingRequest = extractLocalHostUriMetaDataForPortMapping(uri);
 					if (portMappingRequest) {
-						const remoteAuthority = this.environmentService.configuration.remoteAuthority;
+						const remoteAuthority = this.environmentService.remoteAuthority;
 						const addressProvider: IAddressProvider | undefined = remoteAuthority ? {
 							getAddress: async (): Promise<IAddress> => {
 								return (await this.remoteAuthorityResolverService.resolveAuthority(remoteAuthority)).authority;
